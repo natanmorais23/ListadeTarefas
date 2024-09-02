@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@2"></script>
+    
+
+    <style>
+        html, body{
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #app{
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            background-color: beige;
+        }
+        .tarefas{
+            display: flex;
+            width: 100vw;
+            height: 100%;
+            justify-content: space-around;
+        }
+        .coluna{
+            box-shadow: 1px 0 0 0 #b5a5a5, -1px 0 0 0 #e5e3e3;
+            width: 33.3%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .coluna-cards{
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row; 
+            flex-wrap: wrap; 
+            align-items: flex-start;
+            overflow-y: auto;
+            justify-content: center;
+        }
+        .card{
+            padding: 0.8em;
+            height: 100%;
+        }
+        .coluna-highlight{
+            border: 2px solid #2482ff;
+            width: 100%;
+            height: 100%;
+        }
+        h1{
+            margin-top: 10%;
+            font-size: 1.3rem;
+        }
+        hr{
+            border: 1px solid rgb(0, 0, 0);
+            width: 80%;
+        }
+        #modal{
+            display: none;
+            position: fixed;
+            height: 80%;
+            width: 60%;
+        }
+        #modal a{
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            margin: 2.05rem;
+            width: 20%;
+        }
+        #modal button{
+            position: absolute;
+            width: 40px;
+            top: 0;
+            right: 0;
+            margin: 2.05em;
+        }
+        .coluna-cards .card{
+            height: 220px;
+            width: 220px;
+            margin: 10px;
+        }
+        .card p{
+            color: red;
+            margin-top: 6px;
+            display: none;
+        }
+        .card h5{
+            margin-bottom: 10px;
+        }
+        .card-main i{
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 10px;
+            cursor: pointer;
+            color: black;
+            font-size: 20px;
+        }
+        #buttons{
+            display: flex;
+            justify-content: space-between;
+        }
+        .rosa{
+            background-color: rgb(255, 11, 104);
+        }
+        .amarela{
+            background-color: rgb(218, 251, 34);
+        }
+        .laranja{
+            background-color: rgb(243, 155, 24);
+        }
+        .salmao{
+            background-color: rgb(252, 105, 88);
+        }
+        .verde{
+            background-color: rgb(1, 143, 1);
+        }
+        /* #msg{ */
+            /* display: none;
+            position: absolute;
+            top: 25%;
+            left: 20%;
+            height: auto;
+        } */
+    </style>
+</head>
+<body>
+    <div id="app" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+        <div class="tarefas" style="height:100vh;">
+            <div class="coluna">
+                <h1>A fazer</h1>
+                <hr>
+                <section class="coluna-cards" @dblclick="abrirModal" @dragover.prevent @drop="handleDrop('aFazer')">
+                    <section class="card card-main" v-for="item in itens.aFazer" :class="cardColor(item.setor, item.prioridade)" :key="item.id" draggable="true" @dragstart="dragStart(item)" @dragend="dragEnd">
+                        <h5>S - {{item.atribuinte}}</h5>
+                        <h5>P - {{item.prioridade}}</h5>
+                        <h5>T - {{item.tela}}</h5>
+                        <h5>R - {{item.tarefa}}</h5>
+                        <i @click="removerItem(item.id)" :data-id="item.id" class="bi bi-trash3"></i>
+                        <!-- <div class="card" id="msg" style="text-align: justify;">
+                            <h6>Tem certeza que deseja remover?</h6>
+                            <div id="buttons">
+                                <button @click="fecharMsg" class="btn btn-danger">Cancelar</button>
+                                <button class="btn btn-primary">Remover</button>
+                            </div>
+                        </div> -->
+                        <div id="mensagemInicial">
+                            <h4>Clique duas vezes para adicionar a tarefa</h4>
+                        </div>
+                    </section>
+                </section>
+            </div>
+            <div class="coluna">
+                <h1>Em andamento</h1>
+                <hr>
+                <section class="coluna-cards" @dragover.prevent @drop="handleDrop('emAndamento')">
+                    <section class="card card-main" v-for="item in itens.emAndamento" :class="cardColor(item.setor, item.prioridade)" :key="item.id" draggable="true" @dragstart="dragStart(item)" @dragend="dragEnd">
+                        <h5>S - {{item.atribuinte}}</h5>
+                        <h5>P - {{item.prioridade}}</h5>
+                        <h5>T - {{item.tela}}</h5>
+                        <h5>R - {{item.tarefa}}</h5>
+                        <i @click="removerItem(item.id)" :data-id="item.id" class="bi bi-trash3"></i>
+                        <!-- <div class="card" id="msg" style="text-align: justify;">
+                            <h6>Tem certeza que deseja remover?</h6>
+                            <div id="buttons">
+                                <button @click="fecharMsg" class="btn btn-danger">Cancelar</button>
+                                <button class="btn btn-primary">Remover</button>
+                            </div>
+                        </div> -->
+                    </section>
+                </section>
+            </div>
+            <div class="coluna">
+                <h1>Concluído</h1>
+                <hr>
+                <section class="coluna-cards" @dragover.prevent @drop="handleDrop('concluido')">
+                    <section class="card card-main" v-for="item in itens.concluido" :class="cardColor(item.setor, item.prioridade)" :key="item.id" draggable="true" @dragstart="dragStart(item)" @dragend="dragEnd">
+                        <h5>S - {{item.atribuinte}}</h5>
+                        <h5>P - {{item.prioridade}}</h5>
+                        <h5>T - {{item.tela}}</h5>
+                        <h5>R - {{item.tarefa}}</h5>
+                        <i @click="removerItem(item.id)" :data-id="item.id" class="bi bi-trash3"></i>
+                        <!-- <div class="card" id="msg" style="text-align: justify;">
+                            <h6>Tem certeza que deseja remover?</h6>
+                            <div id="buttons">
+                                <button @click="fecharMsg" class="btn btn-danger">Cancelar</button>
+                                <button class="btn btn-primary">Remover</button>
+                            </div>
+                        </div> -->
+                    </section>
+                </section>
+            </div>
+        </div>
+
+        <div id="modal">
+            <div class="card">
+                <div class="card-body" draggable="true">
+                  <h5 class="card-title">Nova tarefa</h5>
+                  <br>
+                  <label for="">Tarefa:</label>
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" v-model="novoItem.tarefa" placeholder="Título">
+                  </div>
+                  <p id="obg">* Campo obrigatório</p>
+                  <label for="">Atribuinte:</label>
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" v-model="novoItem.atribuinte" placeholder="Nome">
+                  </div>
+                  <label for="">Tela:</label>
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" v-model="novoItem.tela" placeholder="Tela">
+                  </div>
+                  <label for="">Prioridade:</label>
+                  <select class="form-control" id="prioridades" v-model="novoItem.prioridade">
+                    <option v-for="prioridade in prioridades" :value="prioridade">{{prioridade}}</option>
+                  </select>
+                  <label for="">Setor:</label>
+                  <select class="form-control" id="setores" v-model="novoItem.setor">
+                    <option v-for="setor in setores" :value="setor">{{setor}}</option>
+                  </select>
+                  <a href="#" class="btn btn-primary" @click="salvarCard">Criar</a>
+                  <button type="button" class="btn-close" @click="fecharModal" aria-label="Close"></button>
+                </div>
+              </div>
+        </div>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Sucesso!</strong>
+                <small>Agora</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Você excluiu a tarefa.
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+
+        new Vue({
+            el: '#app',
+            data: {
+                novoItem: {tarefa: '', atribuinte: '', tela: '', prioridade: '', setor: ''},
+                prioridades: ['Baixa', 'Média', 'Alta', 'Urgente'],
+                setores: ['Develop', 'Sites', 'Suporte', 'Q.A.'],
+                itens: {
+                    aFazer: [],
+                    emAndamento: [],
+                    concluido: []
+                },
+                draggedItem: null,
+                nextId: 1
+            },
+            methods:{
+                mostrarToast(){
+                    const toastEl = document.getElementById('liveToast');
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                },
+                dragStart(item){
+                    this.draggedItem = item;
+                },
+                dragEnd(){
+                    this.draggedItem = null;
+                },
+                handleDrop(column){
+                    if (this.draggedItem) {
+                        const sourceColumn = Object.keys(this.itens).find(col => this.itens[col].includes(this.draggedItem));
+                        if (sourceColumn) {
+                            const index = this.itens[sourceColumn].indexOf(this.draggedItem);
+                            if (index > -1) {
+                                this.itens[sourceColumn].splice(index, 1);
+                            }
+                        }
+                        this.itens[column].push(this.draggedItem);
+                        this.updateLocalStorage();
+                        this.draggedItem = null;
+                    }
+                }
+                ,
+                abrirModal(){
+                    document.getElementById('obg').style.display = 'none';
+                    document.getElementById('modal').style.display = 'block';
+                },
+                fecharModal(){
+                    document.getElementById('modal').style.display = 'none';
+                },
+                // abrirMsg(){
+
+                //     // document.getElementById('msg').style.display = 'block';
+                // },
+                // fecharMsg(){
+                //     document.getElementById('msg').style.display = 'none';
+                // },
+                salvarCard(){
+                    if(this.novoItem.tarefa){
+                        this.itens.aFazer.push({...this.novoItem, id: this.nextId++});
+                        this.updateLocalStorage();
+                        this.limparNovoItem();
+                        this.fecharModal();
+                    }
+                    else{
+                        document.getElementById('obg').style.display = 'block';
+                    }
+                },
+                limparNovoItem(){
+                    this.novoItem = {tarefa: '', atribuinte: '', tela: '', prioridade: ''}
+                },
+                cardColor(setor, prioridade){
+                    if(prioridade === 'Urgente'){
+                        return 'rosa';
+                        console.log(setor);
+                    }
+                    else{
+                        if(setor === 'Develop'){
+                            return 'laranja';
+                        }
+                        else if(setor === 'Sites'){
+                            return 'salmao';
+                        }
+                        else if(setor === 'Suporte'){
+                            return 'verde';
+                        }
+                        else if(setor === 'Q.A.'){
+                            return 'amarela';
+                        }
+                    }
+                },
+                updateLocalStorage() {
+                    localStorage.setItem('itens', JSON.stringify(this.itens));
+                },
+                loadItems() {
+                    const savedItems = localStorage.getItem('itens');
+                    if (savedItems) {
+                        try {
+                            const parsedItems = JSON.parse(savedItems);
+                            if (parsedItems.aFazer && Array.isArray(parsedItems.aFazer)) {
+                                this.itens = parsedItems;
+                                this.nextId = Math.max(...this.itens.aFazer.map(item => item.id), 1);
+                            }
+                        } catch (error) {
+                            console.error("Failed to parse items from localStorage:", error);
+                        }
+                    }
+                },
+                removerItem(itemId){
+                    Object.keys(this.itens).forEach(column => {
+                        this.itens[column] = this.itens[column].filter(item => item.id !== itemId);
+                    });
+                    this.updateLocalStorage();
+                    this.mostrarToast();
+                }
+            },
+            created() {
+                this.loadItems();
+            }
+        })
+    </script>
+</body>
+</html>
