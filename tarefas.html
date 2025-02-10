@@ -154,10 +154,10 @@
                                 <button class="btn btn-primary">Remover</button>
                             </div>
                         </div> -->
-                        <div id="mensagemInicial">
-                            <h4>Clique duas vezes para adicionar a tarefa</h4>
-                        </div>
                     </section>
+                    <div v-if="itens.aFazer.length === 0" id="mensagemInicial">
+                        <h4>Clique duas vezes para adicionar a tarefa</h4>
+                    </div>
                 </section>
             </div>
             <div class="coluna">
